@@ -13,6 +13,7 @@ import (
 
 	"github.com/ranit1803/students-api/internal/config"
 	"github.com/ranit1803/students-api/internal/http/handlers/student"
+	"github.com/ranit1803/students-api/internal/storage/mysql"
 )
 
 
@@ -27,9 +28,16 @@ func main(){
 	//Loading the config
 	cfg:=config.MustLoad()
 
+	//setup the Database
+	storage, err := mysql.New(cfg)
+	if err!=nil {
+		log.Fatal(err)
+	}
+	slog.Info("Storage Initialized",slog.String("env",cfg.Env))
+
 	//Setting up the router
 	router:= http.NewServeMux()
-	router.HandleFunc("POST /api/students", student.New())
+	router.HandleFunc("POST /api/students", student.New(storage))
 
 	//Setup the Server
 	server:= http.Server{
@@ -52,7 +60,7 @@ func main(){
 	//Stopping the server
 	slog.Info("Server Stopping..")
 	ctx, cancel:= context.WithTimeout(context.Background(),time.Second * 5)
-	err:= server.Shutdown(ctx)
+	err = server.Shutdown(ctx)
 	if err!= nil{
 		slog.Error("Failed to Shut Down",slog.String("Error",err.Error()))
 	}
