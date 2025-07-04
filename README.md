@@ -1,6 +1,6 @@
  # 🧑‍🎓 **Students API - RESTful Service in Go**
 
-A simple, production-style REST API built using **Golang** and **MySQL** to manage student records. This project demonstrates key backend concepts including routing, request validation, error handling, and graceful server shutdowns.
+A simple, production-style REST API built using **Golang** and **MySQL** to manage student records. This project demonstrates key backend concepts including routing, request validation, error handling, and graceful server shutdowns. This project was built by closely following Coder’s Gyan's YouTube course on Golang REST APIs
 
 ---
 
