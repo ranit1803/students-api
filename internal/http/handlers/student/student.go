@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/ranit1803/students-api/internal/storage"
@@ -51,5 +52,36 @@ func New(storage storage.Storage) http.HandlerFunc{
 		}
 
 		responses.WriteJSON(w,http.StatusCreated, map[string]int64 {"id":id})
+	}
+}
+
+func GetByID(storage storage.Storage) http.HandlerFunc{
+	return func(w http.ResponseWriter, r *http.Request){
+		id:= r.PathValue("id")
+		slog.Info("Getting Student", slog.String("ID", id))
+		lastid, err:= strconv.ParseInt(id, 10, 64)
+		if err!= nil{
+			responses.WriteJSON(w,http.StatusBadRequest, responses.GeneralError(err))
+			return
+		}
+		studentid, err:= storage.GetStudentByID(lastid)
+		if err!=nil{
+			slog.Info("Error Getting Student", slog.String("Id:",id))
+			responses.WriteJSON(w,http.StatusInternalServerError,responses.GeneralError(err))
+			return
+		}
+		responses.WriteJSON(w,http.StatusOK, studentid)
+	}
+}
+
+func GetList(storage storage.Storage) http.HandlerFunc{
+	return func(w http.ResponseWriter, r *http.Request){
+		slog.Info("Getting all the Students")
+		res, err:= storage.GetStudents()
+		if err!=nil{
+			responses.WriteJSON(w, http.StatusInternalServerError, responses.GeneralError(err))
+			return
+		}
+		responses.WriteJSON(w,http.StatusOK, res)
 	}
 }

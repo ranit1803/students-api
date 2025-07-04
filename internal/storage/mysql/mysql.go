@@ -2,9 +2,11 @@ package mysql
 
 import (
 	"database/sql"
+	"fmt"
 
-	"github.com/ranit1803/students-api/internal/config"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/ranit1803/students-api/internal/config"
+	"github.com/ranit1803/students-api/internal/types"
 )
 
 type MySql struct {
@@ -53,4 +55,47 @@ func (m *MySql) CreateStudent(name string, email string, age int) (int64,error){
 	}
 
 	return lastid, nil
+}
+
+func (m *MySql) GetStudentByID(id int64) (types.Student, error){
+	statement, err:= m.Db.Prepare(`select * from students where id = ? limit 1`)
+	if err!= nil{
+		return types.Student{}, nil
+	}
+	defer statement.Close()
+	var student types.Student
+	
+	err = statement.QueryRow(id).Scan(&student.Id, &student.Name, &student.Email, &student.Age)
+	if err!=nil{
+		if err == sql.ErrNoRows{
+			return types.Student{}, fmt.Errorf("no student found with id: %s",fmt.Sprint(id))
+		}
+		return types.Student{}, fmt.Errorf("query error %w", err)
+	}
+	return student,nil
+}
+
+func (m *MySql) GetStudents()([]types.Student, error){
+	statement, err:= m.Db.Prepare(`select * from students`)
+	if err!=nil{
+		return nil, err
+	}
+	defer statement.Close()
+	rows, err:= statement.Query()
+	if err!=nil {
+		return nil,err
+	}
+	
+	defer rows.Close()
+	var students []types.Student
+	for rows.Next(){
+		var student types.Student
+		err:= rows.Scan(&student.Id, &student.Name, &student.Email, &student.Age)
+		if err!=nil{
+			return nil,err
+		}
+
+		students = append(students, student)
+	}
+	return students,nil
 }
