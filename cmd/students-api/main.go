@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	// "fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/ranit1803/students-api/internal/config"
+	"github.com/ranit1803/students-api/internal/http/handlers/student"
 )
 
 
@@ -27,23 +29,22 @@ func main(){
 
 	//Setting up the router
 	router:= http.NewServeMux()
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome to this project!"))
-	})
+	router.HandleFunc("POST /api/students", student.New())
 
 	//Setup the Server
 	server:= http.Server{
 		Addr: cfg.HTTPServer.Address,
 		Handler: router,
 	}
-	slog.Info("Server Listening at",slog.String(": ",cfg.HTTPServer.Address))
+	slog.Info("Server Listening at",slog.String("address",cfg.HTTPServer.Address))
+	// fmt.Printf("Server Listening at %s\n",server.Addr)
 
 	channel_shutdown:= make(chan os.Signal, 1)
 	signal.Notify(channel_shutdown,os.Interrupt,syscall.SIGINT,syscall.SIGABRT,syscall.SIGTERM)
 	go func ()  {
 		err:= server.ListenAndServe() // without goroutine i cannot graceful shutdown
-		if err!= nil{
-			log.Fatal("Failed to Serve!")
+		if err!= nil && err !=http.ErrServerClosed{
+			log.Fatalf("Failed to Serve: %s",err)
 	}
 	}()
 	<- channel_shutdown
