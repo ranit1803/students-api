@@ -15,7 +15,7 @@ type MySql struct {
 
 //to make an instance of the sql this function is being made
 func New(cfg *config.Config) (*MySql,error){
-	db,err:= sql.Open("mysql", "root:ranit1803@/students_db")
+	db,err:= sql.Open("mysql", "user:password@/db_name")
 	if err != nil{
 		return nil, err
 	}
